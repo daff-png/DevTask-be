@@ -21,6 +21,15 @@ const taskSchema = new mongoose.Schema(
             enum: ['Pending', 'In Progress', 'Completed'],
             default: 'Pending',
         },
+        assignedTo: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            default: null,
+        },
+        createdBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+        }
     },
     {
         timestamps: true,

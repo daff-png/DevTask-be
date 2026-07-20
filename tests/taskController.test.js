@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import Task from '../models/Task.js';
-import { updateTask, deleteTask } from '../controllers/taskController.js';
+import { updateTask, deleteTask, getAllTasks } from '../controllers/taskController.js';
 
 function createMockRes() {
   return {
@@ -64,5 +64,58 @@ test('deleteTask returns success response for valid id', async () => {
     assert.deepEqual(res.payload, { message: 'Task deleted successfully' });
   } finally {
     Task.findByIdAndDelete = original;
+  }
+});
+
+test('getAllTasks returns paginated results with metadata', async () => {
+  const originalFind = Task.find;
+  const originalCountDocuments = Task.countDocuments;
+
+  Task.find = (filter) => {
+    assert.deepEqual(filter, { category: 'Work' });
+    return {
+      sort: (sortValue) => {
+        assert.deepEqual(sortValue, { createdAt: -1 });
+        return {
+          skip: (skipValue) => {
+            assert.equal(skipValue, 10);
+            return {
+              limit: (limitValue) => {
+                assert.equal(limitValue, 5);
+                return Promise.resolve([{ _id: 'task-1' }]);
+              },
+            };
+          },
+        };
+      },
+    };
+  };
+
+  Task.countDocuments = async (filter) => {
+    assert.deepEqual(filter, { category: 'Work' });
+    return 26;
+  };
+
+  try {
+    const req = {
+      query: { category: 'Work', page: '3', limit: '5' },
+    };
+    const res = createMockRes();
+
+    await getAllTasks(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(res.payload, {
+      tasks: [{ _id: 'task-1' }],
+      pagination: {
+        page: 3,
+        limit: 5,
+        totalTasks: 26,
+        totalPages: 6,
+      },
+    });
+  } finally {
+    Task.find = originalFind;
+    Task.countDocuments = originalCountDocuments;
   }
 });
