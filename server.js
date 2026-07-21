@@ -13,7 +13,8 @@ const app = express()
 const PORT = process.env.PORT || 5000
 
 app.use(cors({
-    origin: ['http://localhost:5173', 'https://dev-task.vercel.app'],
+    origin: ['http://localhost:5173', 'https://dev-task-fe.vercel.app'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
 }))
 
 // Permissive parser: accept JSON body even when Content-Type header is missing.
