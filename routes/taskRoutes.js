@@ -6,6 +6,7 @@ import {
     createTask,
     updateTask,
     deleteTask
+    ,debugAllTasks
 } from "../controllers/taskController.js";
 import { protect, authorize } from "../middleware/authMiddleware.js"
 
@@ -14,6 +15,7 @@ const router = express.Router()
 router.use(protect)
 
 router.get('/', getAllTasks)
+router.get('/debug/all', authorize('PM'), debugAllTasks)
 router.get('/stats', getStats)
 router.get('/:id', getTaskById)
 router.post('/', authorize('PM'), createTask)

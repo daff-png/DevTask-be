@@ -46,3 +46,21 @@ export async function getMe(req, res) {
         role: req.user.role,
     })
 }
+
+export async function debugToken(req, res) {
+    // protected route to help debug token issues from client
+    const header = req.headers.authorization || null
+    const token = req.token || header?.split(' ')[1] || req.headers['x-access-token'] || req.query?.token || null
+    let decoded = null
+    try {
+        if (token) decoded = jwt.verify(token, process.env.JWT_SECRET)
+    } catch (e) {
+        // ignore decode errors here
+    }
+    res.json({
+        header,
+        token: token ? (token.length > 10 ? token.slice(0, 6) + '...' : token) : null,
+        decoded,
+        user: req.user ? { id: req.user._id, role: req.user.role, email: req.user.email } : null,
+    })
+}
